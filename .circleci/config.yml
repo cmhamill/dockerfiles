@@ -1,0 +1,33 @@
+version: 2
+jobs:
+  build:
+    machine: true
+    steps:
+      - checkout
+
+      - run:
+          name: Docker Registry Login
+          command: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+      - run:
+          name: Build Images
+          command: make build
+
+  deploy:
+    machine: true
+    steps:
+      - run:
+          name: Push Images to Registry
+          command: make push
+
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+      - build:
+          filters:
+            branches:
+                only: /^master$/
+      - deploy:
+          requires:
+            - build
